@@ -1,9 +1,10 @@
+import GestorUsuarios from "./components/GestorUsuarios"
 
 function App() {
   return (
     <>
-      <div>
-        <h1>hey phil...</h1>
+      <div className="min-h-screen bg-gray-100 p-8 font-sans">
+        <GestorUsuarios />
       </div>
     </>
   )

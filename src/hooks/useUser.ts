@@ -111,6 +111,95 @@ const useUser = () => {
         }));
     };
 
+    /**
+     * Handle form submission for creating or updating a user.
+     * Maneja el envío del formulario para crear o actualizar un usuario.
+     *
+     * @param e FormEvent<HTMLFormElement> The form submission event.
+     * @returns {Promise<void>} A promise that resolves after the operation completes.
+     */
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+        e.preventDefault();
+        setLoading(true);
+
+        try {
+            if (userToEdit) {
+                await axios.put(`${API_URL}/${userToEdit.id}`, {
+                    name: formData.name,
+                    avatar: formData.avatar,
+                });
+                succesAlert('Usuario actualizado exitosamente');
+            } else {
+                await axios.post(API_URL, {
+                    ...formData,
+                    role: 'customer',
+                });
+                succesAlert('Usuario creado exitosamente');
+            }
+
+            setFormData({
+                name: "",
+                email: "",
+                avatar: "https://placehold.co/600x400/004AAD/FFF?text=user+avatar",
+                password: "",
+            });
+            setUserToEdit(null);
+            await fetchUsers();
+        } catch (error) {
+            errorAlert('Error al guardar o actualizar el usuario. Por favor, intente de nuevo más tarde.');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    /**
+     * Set the user to edit and populate the form with user data.
+     * Establece el usuario a editar y rellena el formulario con los datos del usuario.
+     *
+     * @param user UserApi The user object to edit.
+     * @returns {void}
+     */
+    const handleEdit = (user: UserApi): void => {
+        setUserToEdit(user);
+        setFormData({
+            name: user.name,
+            email: user.email,
+            avatar: user.avatar,
+        });
+    }
+
+    /**
+     * Handle user deletion with confirmation dialog.
+     * Maneja la eliminación de un usuario con diálogo de confirmación.
+     *
+     * @param userId number The ID of the user to delete.
+     * @returns {Promise<void>} A promise that resolves after the operation completes.
+     */
+    const handleDelete = async (userId: number): Promise<void> => {
+        setLoading(true);
+        try {
+            const result = await Swal.fire({
+                title: '¿Estás seguro?',
+                text: "¡No podrás revertir esto!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, eliminar',
+            });
+
+            if (result.isConfirmed) {
+                await axios.delete(`${API_URL}/${userId}`);
+                succesAlert('Usuario eliminado exitosamente');
+                await fetchUsers();
+            }
+        } catch (error) {
+            errorAlert('Error al eliminar el usuario. Por favor, intente de nuevo más tarde.');
+        } finally {
+            setLoading(false);
+        }
+    }
+
     return {
         users,
         userToEdit,
@@ -119,6 +208,9 @@ const useUser = () => {
         formData,
         setFormData,
         handleInputChange,
+        handleSubmit,
+        handleEdit,
+        handleDelete,
     }
 };
 
